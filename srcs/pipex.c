@@ -6,13 +6,38 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 11:49:39 by claprand          #+#    #+#             */
-/*   Updated: 2024/07/22 12:12:34 by claprand         ###   ########.fr       */
+/*   Updated: 2024/07/22 16:35:51 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-void	execute(char *cmd, char **env)
+void	if_cmd_empty_or_space(char *av)
+{
+	int	i;
+	int	n;
+
+	i = 0;
+	n = 0;
+	if (av[0] == '\0')
+	{
+		ft_putstr_fd("pipex: permission denied:\n", 2);
+		exit(EXIT_FAILURE);
+	}
+	while (av[i])
+	{
+		if (av[i] != ' ')
+			n++;
+		i++;
+	}
+	if (n == 0)
+	{
+		ft_putstr_fd("pipex: command not found:\n", 2);
+		exit(EXIT_FAILURE);
+	}
+}
+
+int	execute(char *cmd, char **env)
 {
 	char	**p_cmd;
 	char	*path;
@@ -26,8 +51,7 @@ void	execute(char *cmd, char **env)
 		ft_putstr_fd("pipex: command not found: ", 2);
 		ft_putendl_fd(p_cmd[0], 2);
 		freetab(p_cmd);
-		free(path);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	if (execve(path, p_cmd, env) == -1)
 	{
@@ -35,13 +59,14 @@ void	execute(char *cmd, char **env)
 		free(path);
 		error_exit(EXIT_FAILURE, strerror(errno));
 	}
+	return (1);
 }
 
 void	child(char **av, int *p_fd, char **env)
 {
 	int	fd;
 
-	fd = open(av[1], O_RDONLY, 0777);
+	fd = open(av[1], O_RDONLY);
 	if (fd == -1)
 	{
 		close(p_fd[0]);
@@ -53,7 +78,9 @@ void	child(char **av, int *p_fd, char **env)
 	close(p_fd[0]);
 	close(p_fd[1]);
 	close(fd);
-	execute(av[2], env);
+	if_cmd_empty_or_space(av[2]);
+	if (execute(av[2], env) == 1)
+		write(1, "hellllll", 20);
 }
 
 void	other_child(char **av, int *p_fd, char **env)
@@ -69,10 +96,12 @@ void	other_child(char **av, int *p_fd, char **env)
 	}
 	dup2(fd, STDOUT_FILENO);
 	dup2(p_fd[0], STDIN_FILENO);
-	close(p_fd[1]);
 	close(p_fd[0]);
+	close(p_fd[1]);
 	close(fd);
-	execute(av[3], env);
+	if_cmd_empty_or_space(av[3]);
+	if (execute(av[3], env) == 1)
+		write(1, "hellllll", 20);
 }
 
 int	main(int ac, char **av, char **env)

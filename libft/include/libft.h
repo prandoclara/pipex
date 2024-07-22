@@ -6,7 +6,7 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 15:08:38 by claprand          #+#    #+#             */
-/*   Updated: 2024/07/21 22:03:24 by claprand         ###   ########.fr       */
+/*   Updated: 2024/07/22 16:38:21 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,5 +93,5 @@ int		ft_print_percent(char c);
 int		ft_ui_len(unsigned int n);
 int		ft_fprintf(int fd, const char *str, ...)
 		__attribute__ ((format (printf, 2, 3)));
-		
+
 #endif

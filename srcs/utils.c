@@ -6,19 +6,24 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 12:02:00 by claprand          #+#    #+#             */
-/*   Updated: 2024/07/19 15:51:49 by claprand         ###   ########.fr       */
+/*   Updated: 2024/07/22 12:14:32 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
+void	error_exit(int code, char *message)
+{
+	ft_putstr_fd("pipex: ", 2);
+	ft_fprintf(STDERR_FILENO, "%s\n", message);
+	exit(code);
+}
+
 char	*get_env(char **env)
 {
 	int		i;
-	int		j;
 
 	i = 0;
-	j = 0;
 	while (env[i])
 	{
 		if (ft_strncmp(env[i], "PATH=", 5) == 0)
@@ -28,35 +33,49 @@ char	*get_env(char **env)
 	return (NULL);
 }
 
-char	*get_path(char *cmd, char **env)
+char	*get_path(char *av, char **env)
 {
-	int i;
-	char **allpaths;
-	char *path;
-	char *exec;
-	char **p_cmd;
+	char	*path;
+	char	**allpaths;
+	int		i;
 
-	i = -1;
+	i = 0;
+	if (get_env(env) == NULL)
+		return (ft_strdup(av));
 	allpaths = ft_split(get_env(env), ':');
-	p_cmd = ft_split(cmd, ' ');
-	if (!p_cmd)
+	if (!allpaths)
+		error_exit(EXIT_FAILURE, strerror(errno));
+	path = ft_strdup(av);
+	if (!path)
 	{
 		freetab(allpaths);
-		return (NULL);
+		error_exit(EXIT_FAILURE, strerror(errno));
 	}
-	while (allpaths[++i])
+	while (access(path, F_OK | X_OK) != 0 && allpaths[i])
 	{
-		path = ft_strjoin(allpaths[i], "/");
-		exec = ft_strjoin(path, p_cmd[0]);
-		free(path);
-		if (access(exec, F_OK | X_OK) == 0)
-		{
-			freetab(p_cmd);
-			return (exec);
-		}
-		free(exec);
+		path = find_path(av, path, allpaths, i);
+		i++;
 	}
 	freetab(allpaths);
-	freetab(p_cmd);
-	return (NULL);
-}	
+	return (path);
+}
+
+char	*find_path(char *av, char *path, char **allpaths, int i)
+{
+	char	*tmp;
+
+	tmp = NULL;
+	if (path)
+	{
+		free(path);
+		path = NULL;
+	}
+	tmp = ft_strjoin(allpaths[i], "/");
+	if (!tmp)
+		error_exit(EXIT_FAILURE, strerror(errno));
+	path = ft_strjoin(tmp, av);
+	if (!path)
+		error_exit(EXIT_FAILURE, strerror(errno));
+	free(tmp);
+	return (path);
+}

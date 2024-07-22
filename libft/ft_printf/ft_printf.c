@@ -6,7 +6,7 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 10:14:50 by claprand          #+#    #+#             */
-/*   Updated: 2024/06/05 21:30:12 by claprand         ###   ########.fr       */
+/*   Updated: 2024/07/21 22:02:45 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,4 +58,33 @@ int	ft_printf(const char *s, ...)
 	}
 	va_end(arg);
 	return (len);
+}
+
+int	ft_fprintf(int fd, const char *str, ...)
+{
+	va_list	args;
+	int		i;
+	int		printed_char_nb;
+
+	i = 0;
+	printed_char_nb = 0;
+	if (!str)
+		return (-1);
+	va_start(args, str);
+	while (str[i])
+	{
+		if (str[i] == '%')
+		{
+			printed_char_nb += ft_print_conversion(&args, (char *)str, i + 1);
+			i++;
+		}
+		else
+		{
+			printed_char_nb++;
+			ft_putchar_fd(str[i], fd);
+		}
+		i++;
+	}
+	va_end(args);
+	return (printed_char_nb);
 }

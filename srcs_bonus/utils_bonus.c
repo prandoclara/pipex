@@ -1,16 +1,41 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils.c                                            :+:      :+:    :+:   */
+/*   utils_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 12:02:00 by claprand          #+#    #+#             */
-/*   Updated: 2024/07/22 16:37:10 by claprand         ###   ########.fr       */
+/*   Updated: 2024/07/29 15:58:00 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex.h"
+#include "pipex_bonus.h"
+
+void	if_cmd_empty_or_space(char *av)
+{
+	int	i;
+	int	n;
+
+	i = 0;
+	n = 0;
+	if (av[0] == '\0')
+	{
+		ft_putstr_fd("pipex: permission denied:\n", 2);
+		exit(EXIT_FAILURE);
+	}
+	while (av[i])
+	{
+		if (av[i] != ' ')
+			n++;
+		i++;
+	}
+	if (n == 0)
+	{
+		ft_putstr_fd("pipex: command not found:\n", 2);
+		exit(EXIT_FAILURE);
+	}
+}
 
 void	error_exit(int code, char *message)
 {

@@ -1,41 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   pipex.c                                            :+:      :+:    :+:   */
+/*   pipex_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 11:49:39 by claprand          #+#    #+#             */
-/*   Updated: 2024/07/26 13:07:11 by claprand         ###   ########.fr       */
+/*   Updated: 2024/07/29 15:58:54 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex.h"
-
-void	if_cmd_empty_or_space(char *av)
-{
-	int	i;
-	int	n;
-
-	i = 0;
-	n = 0;
-	if (av[0] == '\0')
-	{
-		ft_putstr_fd("pipex: permission denied:\n", 2);
-		exit(EXIT_FAILURE);
-	}
-	while (av[i])
-	{
-		if (av[i] != ' ')
-			n++;
-		i++;
-	}
-	if (n == 0)
-	{
-		ft_putstr_fd("pipex: command not found:\n", 2);
-		exit(EXIT_FAILURE);
-	}
-}
+#include "pipex_bonus.h"
 
 int	execute(char *cmd, char **env)
 {
@@ -65,68 +40,94 @@ int	execute(char *cmd, char **env)
 	return (1);
 }
 
-void	child(char **av, int *p_fd, char **env)
+void	get_here_doc_lines(char **av, int *p_fd)
 {
-	int	fd;
+	char	*line;
 
-	fd = open(av[1], O_RDONLY);
-	if (fd == -1)
-	{
-		close(p_fd[0]);
-		close(p_fd[1]);
-		error_exit(EXIT_FAILURE, strerror(errno));
-	}
-	dup2(fd, STDIN_FILENO);
-	dup2(p_fd[1], STDOUT_FILENO);
 	close(p_fd[0]);
-	close(p_fd[1]);
-	close(fd);
-	if_cmd_empty_or_space(av[2]);
-	execute(av[2], env);
+	while (1)
+	{
+		ft_putstr_fd("here_doc > ", 1);
+		line = get_next_line(0);
+		if (ft_strncmp(line, av[2], ft_strlen(av[2])) == 0)
+		{
+			free(line);
+			exit(0);
+		}
+		ft_putstr_fd(line, p_fd[1]);
+		free(line);
+	}
 }
 
-void	other_child(char **av, int *p_fd, char **env)
-{
-	int	fd;
-
-	fd = open(av[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-	if (fd == -1)
-	{
-		close(p_fd[1]);
-		close(p_fd[0]);
-		error_exit(EXIT_FAILURE, strerror(errno));
-	}
-	dup2(fd, STDOUT_FILENO);
-	dup2(p_fd[0], STDIN_FILENO);
-	close(p_fd[0]);
-	close(p_fd[1]);
-	close(fd);
-	if_cmd_empty_or_space(av[3]);
-	execute(av[3], env);
-}
-
-int	main(int ac, char **av, char **env)
+void	get_here_doc(char **av)
 {
 	int		p_fd[2];
 	pid_t	pid;
-	pid_t	pid2;
 
-	if (ac != 5)
-		error_exit(EXIT_FAILURE, "./pipex infile cmd cmd outfile");
+	if (pipe(p_fd) == -1)
+		exit(0);
+	pid = fork();
+	if (pid == -1)
+		exit(0);
+	if (pid == 0)
+		get_here_doc_lines(av, p_fd);
+	else
+	{
+		close(p_fd[1]);
+		dup2(p_fd[0], 0);
+		wait(NULL);
+	}
+}
+
+void	do_pipe(char *p_cmd, char **env)
+{
+	pid_t	pid;
+	int		p_fd[2];
+
 	if (pipe(p_fd) == -1)
 		error_exit(EXIT_FAILURE, strerror(errno));
 	pid = fork();
 	if (pid == -1)
 		error_exit(EXIT_FAILURE, strerror(errno));
 	if (pid == 0)
-		child(av, p_fd, env);
-	pid2 = fork();
-	if (pid2 == -1)
-		error_exit(EXIT_FAILURE, strerror(errno));
-	if (pid2 == 0)
-		other_child(av, p_fd, env);
-	close(p_fd[0]);
-	close(p_fd[1]);
-	waitpid(pid, NULL, 0);
-	waitpid(pid2, NULL, 0);
+	{
+		close(p_fd[0]);
+		dup2(p_fd[1], STDOUT_FILENO);
+		if_cmd_empty_or_space(p_cmd);
+		execute(p_cmd, env);
+	}
+	else
+	{
+		close(p_fd[1]);
+		dup2(p_fd[0], STDIN_FILENO);
+	}
+}
+
+int	main(int ac, char **av, char **env)
+{
+	int		i;
+	int		fd_in;
+	int		fd_out;
+
+	if (ac < 5)
+		error_exit(EXIT_FAILURE, "./pipex file1 cmd1 cmd2 cmd3 ... cmdn file2");
+	if (ft_strcmp(av[1], "here_doc") == 0)
+	{
+		if (ac < 6)
+			error_exit(EXIT_FAILURE, "./pipex here_doc LIMITER cmd cmd1 file");
+		i = 3;
+		fd_out = open(av[ac - 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
+		get_here_doc(av);
+	}
+	else
+	{
+		i = 2;
+		fd_in = open(av[1], O_RDONLY);
+		fd_out = open(av[ac - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+		dup2(fd_in, 0);
+	}
+	while (i < ac - 2)
+		do_pipe(av[i++], env);
+	dup2(fd_out, STDOUT_FILENO);
+	execute(av[ac - 2], env);
 }

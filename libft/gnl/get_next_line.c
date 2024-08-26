@@ -6,131 +6,108 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 11:06:31 by claprand          #+#    #+#             */
-/*   Updated: 2024/06/12 10:10:34 by claprand         ###   ########.fr       */
+/*   Updated: 2024/08/26 14:00:11 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static char	*get_line_to_return(char *str)
+size_t	ft_str_len(const char *s)
 {
-	char	*final_line;
-	int		i;
+	size_t	i;
 
-	final_line = NULL;
 	i = 0;
-	if (!str)
-		return (NULL);
-	while (str[i] && str[i] != '\n')
+	if (!s)
+		return (0);
+	while (s[i])
 		i++;
-	final_line = (char *)malloc(sizeof(char) * (i + 2));
-	if (!final_line)
-		return (NULL);
-	i = 0;
-	while (str[i] && str[i] != '\n')
-	{
-		final_line[i] = str[i];
-		i++;
-	}
-	if (str[i] == '\n')
-	{
-		final_line[i] = str[i];
-		i++;
-	}
-	final_line[i] = '\0';
-	return (final_line);
+	return (i);
 }
 
-static char	*keep_what_is_left(char *str)
+int	strchr_gnl(char *s, char x)
+{
+	int	i;
+
+	i = 0;
+	if (!s)
+		return (0);
+	while (s[i])
+	{
+		if (s[i] == x)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+char	*ft_join_gnl(char *s1, char *s2)
 {
 	int		i;
 	int		j;
-	char	*left_str;
+	char	*join;
+
+	if (!s1)
+	{
+		s1 = malloc(sizeof(char) * 1);
+		s1[0] = 0;
+	}
+	join = malloc(ft_str_len(s1) + ft_str_len(s2) + 1);
+	if (!join)
+		return (free(s1), NULL);
+	i = -1;
+	j = -1;
+	while (s1[++i])
+		join[i] = s1[i];
+	while (s2[++j])
+		join[i + j] = s2[j];
+	join[i + j] = 0;
+	free(s1);
+	return (join);
+}
+
+void	clean_gnl(char *line, char *buffer)
+{
+	int	i;
+	int	j;
 
 	i = 0;
-	if (!str)
-		return (NULL);
-	while (str[i] && str[i] != '\n')
-		i++;
-	if (!str[i])
-	{
-		free(str);
-		return (NULL);
-	}	
-	left_str = (char *)malloc(sizeof(char) * (ft_str_len(str) - i + 1));
-	if (!left_str)
-		return (NULL);
-	i++;
 	j = 0;
-	while (str[i])
-		left_str[j++] = str[i++];
-	left_str[j] = '\0';
-	free (str);
-	return (left_str);
-}
-
-static void	check_end_str(char **str)
-{	
-	if (*str[0] == '\0')
+	while (line[i] && line[i] != 10)
+		i++;
+	if (line[i] == 10)
+		i++;
+	while (line[i])
 	{
-		free(*str);
-		*str = NULL;
+		buffer[j] = line[i];
+		line[i] = 0;
+		i++;
+		j++;
 	}
-}
-
-static char	*read_to_str(int fd, char *str)
-{
-	char	*buf;
-	int		nbytes;
-
-	buf = malloc((BUFFER_SIZE + 1) * sizeof(char));
-	if (!buf)
-		return (NULL);
-	nbytes = 1;
-	while (nbytes != 0)
-	{
-		nbytes = read(fd, buf, BUFFER_SIZE);
-		if (nbytes == -1)
-		{
-			free(buf);
-			free(str);
-			return (NULL);
-		}
-		buf[nbytes] = '\0';
-		str = ft_strjoin_gnl(str, buf);
-		if (ft_str_chr(buf, '\n'))
-			break ;
-	}
-	free(buf);
-	check_end_str(&str);
-	return (str);
+	buffer[j] = 0;
 }
 
 char	*get_next_line(int fd)
 {
+	static char	buffer[BUFFER_SIZE + 1];
 	char		*line;
-	static char	*str;
+	int			byte_read;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE < 1)
 		return (NULL);
-	str = read_to_str(fd, str);
-	if (!str)
+	line = 0;
+	line = ft_join_gnl(line, buffer);
+	byte_read = 1;
+	while (byte_read > 0 && !strchr_gnl(line, 10))
 	{
-		free(str);
-		return (NULL);
+		byte_read = read(fd, buffer, BUFFER_SIZE);
+		if (byte_read < 0)
+			return (free(line), NULL);
+		buffer[byte_read] = 0;
+		line = ft_join_gnl(line, buffer);
 	}
-	line = get_line_to_return(str);
-	if (!line)
-	{
-		free (str);
-		return (NULL);
-	}
+	if (!line[0])
+		return (free(line), NULL);
 	else
-	{
-		str = keep_what_is_left(str);
-		return (line);
-	}
-	free(str);
-	str = NULL;
-	return (NULL);
+		clean_gnl(line, buffer);
+	return (line);
 }

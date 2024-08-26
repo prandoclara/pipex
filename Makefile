@@ -63,5 +63,6 @@ fclean: clean
 	@$(MAKE) -sC $(LIBFT_DIR) fclean
 
 re: fclean all
+bis: bonus fclean
 
 .PHONY: all clean fclean re bonus

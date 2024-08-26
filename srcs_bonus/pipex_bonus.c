@@ -6,7 +6,7 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 11:49:39 by claprand          #+#    #+#             */
-/*   Updated: 2024/08/26 13:52:03 by claprand         ###   ########.fr       */
+/*   Updated: 2024/08/26 15:07:52 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,7 +124,7 @@ int	main(int ac, char **av, char **env)
 		i = 2;
 		fd_in = open(av[1], O_RDONLY);
 		fd_out = open(av[ac - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-		dup2(fd_in, 0);
+		dup2(fd_in, STDIN_FILENO);
 	}
 	while (i < ac - 2)
 		do_pipe(av[i++], env);

@@ -6,7 +6,7 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 11:49:39 by claprand          #+#    #+#             */
-/*   Updated: 2024/08/29 10:57:07 by claprand         ###   ########.fr       */
+/*   Updated: 2024/08/29 11:24:35 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,8 +106,7 @@ void	do_pipe(char *p_cmd, char **env)
 int	main(int ac, char **av, char **env)
 {
 	int		i;
-	int		fd_in;
-	int		fd_out;
+	int		p_fd[2];
 
 	if (ac < 5)
 		error_exit(EXIT_FAILURE, "./pipex file1 cmd1 cmd2 cmd3 ... cmdn file2");
@@ -116,19 +115,19 @@ int	main(int ac, char **av, char **env)
 		if (ac < 6)
 			error_exit(EXIT_FAILURE, "./pipex here_doc LIMITER cmd cmd1 file");
 		i = 3;
-		fd_out = open(av[ac - 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
+		p_fd[1] = open(av[ac - 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
 		get_here_doc(av);
 	}
 	else
 	{
 		i = 2;
-		fd_in = open(av[1], O_RDONLY);
-		fd_out = open(av[ac - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-		dup2(fd_in, STDIN_FILENO);
+		p_fd[0] = open(av[1], O_RDONLY);
+		p_fd[1] = open(av[ac - 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+		dup2(p_fd[0], STDIN_FILENO);
 	}
 	while (i < ac - 2)
 		do_pipe(av[i++], env);
-	dup2(fd_out, STDOUT_FILENO);
+	dup2(p_fd[1], STDOUT_FILENO);
 	if_cmd_empty_or_space(av[ac - 2]);
 	execute(av[ac - 2], env);
 }

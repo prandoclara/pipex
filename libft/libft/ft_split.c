@@ -6,7 +6,7 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/03 13:17:26 by claprand          #+#    #+#             */
-/*   Updated: 2024/06/07 10:35:23 by claprand         ###   ########.fr       */
+/*   Updated: 2024/08/29 10:33:05 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ char	**ft_split(char *s, char c)
 		return (strs);
 	}
 	wordcount = count_words(s, c);
-	strs = malloc((wordcount + 1) * sizeof(char *));
+	strs = malloc(sizeof(*strs) * (wordcount + 1));
 	if (!strs)
 		return (NULL);
 	if (malloc_strs(strs, s, c))

@@ -6,7 +6,7 @@
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/19 12:02:00 by claprand          #+#    #+#             */
-/*   Updated: 2024/07/29 15:58:00 by claprand         ###   ########.fr       */
+/*   Updated: 2024/08/29 10:34:51 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ char	*get_path(char *av, char **env)
 	path = ft_strdup(av);
 	if (!path)
 	{
+		free(path);
 		freetab(allpaths);
 		error_exit(EXIT_FAILURE, strerror(errno));
 	}

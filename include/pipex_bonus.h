@@ -5,13 +5,13 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: claprand <claprand@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/26 15:52:22 by claprand          #+#    #+#             */
-/*   Updated: 2024/07/29 15:57:16 by claprand         ###   ########.fr       */
+/*   Created: 2024/08/29 10:12:38 by claprand          #+#    #+#             */
+/*   Updated: 2024/08/29 10:14:24 by claprand         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PIPEX_H
-# define PIPEX_H
+#ifndef PIPEX_BONUS_H
+# define PIPEX_BONUS_H
 
 # include "libft.h"
 # include <unistd.h>
@@ -34,6 +34,5 @@ void	if_cmd_empty_or_space(char *av);
 void	get_here_doc_lines(char **av, int *p_fd);
 void	get_here_doc(char **av);
 void	do_pipe(char *p_cmd, char **env);
-
 
 #endif
